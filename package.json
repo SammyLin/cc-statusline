@@ -1,0 +1,6 @@
+{
+  "name": "cc-statusline",
+  "version": "1.0.0",
+  "type": "module",
+  "bin": "./statusline.js"
+}
