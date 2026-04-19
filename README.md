@@ -1,6 +1,6 @@
 # cc-statusline
 
-A lightweight Claude Code statusline dashboard — shows session info, cost tracking, quota bars, subagent status, and more in your terminal.
+A lightweight Claude Code statusline dashboard — shows session info, cost tracking, quota bars, subagent status, token speed, and more in your terminal.
 
 ![Statusline preview](images/demo.png)
 
@@ -11,9 +11,29 @@ A lightweight Claude Code statusline dashboard — shows session info, cost trac
 - **Repo/branch** — git owner/repo, branch name, dirty indicator
 - **Directory** — current working directory
 - **Subagent tracker** — concurrent subagent runs
-- **MCP health** — server status monitoring
+- **MCP health** — server status monitoring (healthy/failed/needs_auth)
 - **Compact count** — context compaction tracking
 - **Edited files** — recently modified files
+- **Token speed** — rolling average tokens/sec
+- **Account email** — shows logged-in account (from ~/.claude.json)
+- **Powerline mode** — beautiful separators (requires Powerline/Nerd fonts)
+- **Themes** — default, nord, catppuccin, dracula
+
+## Themes
+
+Change the `THEME` constant at the top of `statusline.js`:
+
+```javascript
+const THEME = 'catppuccin'; // 'default' | 'nord' | 'catppuccin' | 'dracula'
+```
+
+## Powerline Mode
+
+Set `POWERLINE_FONTS = true` for nice separators (requires a Powerline/Nerd font):
+
+```javascript
+const POWERLINE_FONTS = true;  // Set false for simple pipe separators
+```
 
 ## Installation
 
@@ -24,8 +44,6 @@ git clone https://github.com/the3mi/cc-statusline ~/.cc-statusline
 # Copy files
 cp ~/.cc-statusline/statusline.js ~/.claude/statusline.js
 cp ~/.cc-statusline/hooks/*.js ~/.claude/hooks/
-
-# Add to ~/.claude/settings.json
 ```
 
 Then add to your `~/.claude/settings.json`:
