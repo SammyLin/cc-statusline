@@ -89,11 +89,11 @@ process.stdin.on('end', () => {
 
     // Group 6: System (MCP, compact, subagent, edited files)
     const sys = [];
-    if (hook.mcpFailed > 0) sys.push(seg(`✘${hook.mcpFailed}`, C.err));
-    else if (hook.mcpHealthy > 0) sys.push(seg(`✔${hook.mcpHealthy}`, C.ok));
-    if (hook.mcpAuth > 0) sys.push(seg(`△${hook.mcpAuth}`, C.i));
-    if (hook.compact > 0) sys.push(segDim(`⌂${hook.compact}`));
-    if (hook.subagent > 0) sys.push(seg(`${hook.subagent}◆`, C.ed));
+    if (hook.mcpFailed > 0) sys.push(seg(`\u2717${hook.mcpFailed}`, C.err));
+    else if (hook.mcpHealthy > 0) sys.push(seg(`\u2713${hook.mcpHealthy}`, C.ok));
+    if (hook.mcpAuth > 0) sys.push(seg(`\u25C7${hook.mcpAuth}`, C.i));
+    if (hook.compact > 0) sys.push(segDim(`\u2302${hook.compact}`));
+    if (hook.subagent > 0) sys.push(seg(`${hook.subagent}\u25C6`, C.ed));
     if (hook.edited.length > 0) sys.push(seg(hook.edited[0].split('/').pop(), C.ed));
 
     // ── Compose ─────────────────────────────────────────────────────────
