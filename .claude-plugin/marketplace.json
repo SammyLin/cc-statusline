@@ -1,0 +1,22 @@
+{
+  "name": "cc-statusline",
+  "owner": {
+    "name": "SammyLin",
+    "url": "https://github.com/SammyLin"
+  },
+  "metadata": {
+    "description": "Lightweight Claude Code statusline — rounded multi-line dashboard with cost, quotas, git, MCP health, and more."
+  },
+  "plugins": [
+    {
+      "name": "cc-statusline",
+      "description": "A lightweight Claude Code statusline dashboard with a rounded multi-line layout, cost tracking, quota bars, git info, MCP/subagent status, and themeable colors.",
+      "version": "1.1.0",
+      "source": "./",
+      "author": {
+        "name": "SammyLin",
+        "url": "https://github.com/SammyLin"
+      }
+    }
+  ]
+}

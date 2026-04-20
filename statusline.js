@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 import { loadConfig } from './lib/config.js';
-import { getTheme, seg, segDim, segBold, POWERLINE, R, DIM, BOLD } from './lib/colors.js';
-import { bar, fmtDur, fmtTok } from './lib/format.js';
+import { getTheme, seg, segDim, segBold, POWERLINE, R, DIM } from './lib/colors.js';
+import { bar, fmtDur, fmtTok, shortDir } from './lib/format.js';
 import { getGitInfo } from './lib/git.js';
 import { getHookData } from './lib/hooks.js';
 import { getRateLimits } from './lib/rate-limits.js';
@@ -10,13 +10,9 @@ import fs from 'fs';
 import path from 'path';
 import os from 'os';
 
-// ─── Config ────────────────────────────────────────────────────────────────
 const cfg = loadConfig();
 const C = getTheme(cfg.theme);
-const PL  = cfg.powerline ? POWERLINE : '|';
-const PLR = cfg.powerline ? '\uE0B2' : '|';
 
-// ─── Read stdin ─────────────────────────────────────────────────────────────
 let d = '';
 process.stdin.on('data', c => d += c);
 process.stdin.on('end', () => {
@@ -37,84 +33,91 @@ process.stdin.on('end', () => {
     // ── Session data ─────────────────────────────────────────────────────
     const model = (i.model?.display_name || '?').replace('Claude ', '');
     const effortMap = { low: 'lo', medium: 'md', high: 'hi', xhigh: 'xh', max: 'mx' };
-    const effort = effortMap[i.effort] || '?';
+    const effort = effortMap[i.effort] || '';
     const cum = updateSession(i);
     const dur = Math.round((cum.dur?.total || 0) / 60000);
 
-    // ── Git ──────────────────────────────────────────────────────────────
+    // ── Cwd / Git / Hooks / Rate limits ─────────────────────────────────
+    const cwd = i.cwd || i.workspace?.current_dir || '';
+    const dirStr = cfg.showDir ? shortDir(cwd, cfg.dirSegments) : '';
     const git = getGitInfo(i);
-
-    // ── Hook data ───────────────────────────────────────────────────────
     const hook = getHookData();
-
-    // ── Rate limits ──────────────────────────────────────────────────────
     const { r5h, r7d } = getRateLimits(i);
 
-    // ── Build segments ────────────────────────────────────────────────────
-    // Group 1: Core — cost (bold), model (bold), effort, duration
-    const core = [
-      segBold(`$${(cum.cost?.total || 0).toFixed(4)}`, C.c),
-      segBold(model, C.m),
-      segDim(`(${effort})`),
-      segDim(fmtDur(dur)),
-    ].join(' ');
+    // ── Build segments ───────────────────────────────────────────────────
+    const dirSeg = dirStr ? seg(dirStr, C.b) : '';
+    const gitSeg = git.repo
+      ? segDim(git.repo + '/') + seg(git.branch, git.dirty ? C.hi : C.b) + (cfg.showDirty && git.dirty ? seg('!', C.hi) : '')
+      : '';
+    const modelSeg = segBold(model, C.m) + (effort ? ' ' + segDim(effort) : '');
+    const costSeg = segBold(`$${(cum.cost?.total || 0).toFixed(4)}`, C.c);
+    const durSeg = dur > 0 ? segDim(fmtDur(dur)) : '';
 
-    // Group 2: Lines changed
-    const lines = [];
-    if ((cum.add?.total || 0) > 0) lines.push(seg(`+${cum.add.total}`, C.ok));
-    if ((cum.rm?.total || 0) > 0) lines.push(seg(`-${cum.rm.total}`, C.hi));
-    const linesStr = lines.length ? lines.join(segDim(' ')) : segDim('±0');
-
-    // Group 3: Tokens + speed
-    const tokTotal = cum.tok?.total || 0;
-    const tokStr = seg(fmtTok(tokTotal), C.bar);
-    const speedStr = cum._speed
-      ? seg(`${cum._speed}t/s`, C.bar)
-      : segDim('0t/s');
-
-    // Group 4: Quota bars (5h / 7d)
-    const quota = [];
+    const quotaSegs = [];
     if (r5h > 0) {
       const col = r5h >= 80 ? C.hi : r5h >= 50 ? C.i : C.ok;
-      quota.push(seg(bar(r5h, cfg.quotaBarLen), col) + segDim('5h'));
+      quotaSegs.push(seg(bar(r5h, cfg.quotaBarLen), col) + segDim(' 5h'));
     }
     if (r7d > 0) {
       const col = r7d >= 80 ? C.hi : r7d >= 50 ? C.i : C.ok;
-      quota.push(seg(bar(r7d, cfg.quotaBarLen), col) + segDim('7d'));
+      quotaSegs.push(seg(bar(r7d, cfg.quotaBarLen), col) + segDim(' 7d'));
     }
-    const quotaStr = quota.join(segDim(' '));
 
-    // Group 5: Git repo + branch
-    const gitStr = (cfg.showDirty && git.repo)
-      ? seg(git.repo, C.b) + ' ' + seg(git.branch, git.dirty ? C.hi : C.b) + (git.dirty ? seg('!', C.hi) : '')
-      : segDim('no git');
+    const tokTotal = cum.tok?.total || 0;
+    const tokSeg = tokTotal > 0
+      ? seg('\u2191' + fmtTok(tokTotal), C.bar) + (cum._speed ? segDim(' ') + seg(`${cum._speed}t/s`, C.bar) : '')
+      : '';
 
-    // Group 6: System (MCP, compact, subagent, edited files)
-    const sys = [];
+    const lineSegs = [];
+    if ((cum.add?.total || 0) > 0) lineSegs.push(seg(`+${cum.add.total}`, C.ok));
+    if ((cum.rm?.total || 0) > 0) lineSegs.push(seg(`-${cum.rm.total}`, C.hi));
+    const linesStr = lineSegs.join(' ');
+
+    const sysSegs = [];
     if (cfg.showMcp) {
-      if (hook.mcpFailed > 0) sys.push(seg(`\u2717${hook.mcpFailed}`, C.err));
-      else if (hook.mcpHealthy > 0) sys.push(seg(`\u2713${hook.mcpHealthy}`, C.ok));
-      if (hook.mcpAuth > 0) sys.push(seg(`\u25C7${hook.mcpAuth}`, C.i));
+      if (hook.mcpFailed > 0) sysSegs.push(seg(`\u2717${hook.mcpFailed}`, C.err));
+      else if (hook.mcpHealthy > 0) sysSegs.push(seg(`\u2713${hook.mcpHealthy}`, C.ok));
+      if (hook.mcpAuth > 0) sysSegs.push(seg(`\u25C7${hook.mcpAuth}`, C.i));
     }
-    if (cfg.showCompact && hook.compact > 0) sys.push(segDim(`\u2302${hook.compact}`));
-    if (cfg.showSubagent && hook.subagent > 0) sys.push(seg(`${hook.subagent}\u25C6`, C.ed));
-    if (cfg.showEditedFiles && hook.edited.length > 0) sys.push(seg(hook.edited[0].split('/').pop(), C.ed));
+    if (cfg.showCompact && hook.compact > 0) sysSegs.push(segDim(`\u2302${hook.compact}`));
+    if (cfg.showSubagent && hook.subagent > 0) sysSegs.push(seg(`${hook.subagent}\u25C6`, C.ed));
+    if (cfg.showEditedFiles && hook.edited.length > 0) sysSegs.push(seg(hook.edited[0].split('/').pop(), C.ed));
+
+    const accountSeg = account ? segDim(account) : '';
 
     // ── Compose ─────────────────────────────────────────────────────────
-    const grp = (parts, sep = ' ') => parts.filter(Boolean).join(sep);
-    const psep = ' ' + DIM + PL + ' ' + R;
+    const join = (parts, sep) => parts.filter(Boolean).join(sep);
+    const SEP = segDim(' \u00b7 ');
 
-    const left = grp([core, linesStr, tokStr + segDim('/') + speedStr]);
-    const right = grp([quotaStr, gitStr, sys.join(' ')]);
-
-    let output = left;
-    if (right) output += psep + right;
-
-    if (cfg.powerline) {
-      output = DIM + PLR + ' ' + R + output + ' ' + DIM + PL + R;
+    if (cfg.layout === 'single') {
+      const left = join([costSeg, modelSeg, durSeg, linesStr, tokSeg], ' ');
+      const right = join([quotaSegs.join(' '), gitSeg, sysSegs.join(' '), accountSeg], ' ');
+      const PL = cfg.powerline ? POWERLINE : '|';
+      const PLR = cfg.powerline ? '\uE0B2' : '|';
+      const sep = ' ' + segDim(PL) + ' ';
+      let out = left;
+      if (right) out += sep + right;
+      if (cfg.powerline) out = segDim(PLR) + ' ' + out + ' ' + segDim(PL);
+      process.stdout.write(out + '\n');
+      return;
     }
 
-    process.stdout.write(output + '\n');
+    // rounded multi-line
+    const line1 = join([dirSeg, gitSeg, modelSeg, costSeg, durSeg], SEP);
+    const line2Parts = [];
+    if (quotaSegs.length) line2Parts.push(quotaSegs.join('  '));
+    if (tokSeg) line2Parts.push(tokSeg);
+    if (linesStr) line2Parts.push(linesStr);
+    if (sysSegs.length) line2Parts.push(sysSegs.join(' '));
+    if (accountSeg) line2Parts.push(accountSeg);
+    const line2 = line2Parts.join(SEP);
+
+    const open  = segDim('\u256d\u2574 ');  // ╭╴
+    const close = segDim('\u2570\u2574 ');  // ╰╴
+
+    let out = open + line1;
+    if (line2) out += '\n' + close + line2;
+    process.stdout.write(out + '\n');
   } catch (e) {
     process.stdout.write('');
   }

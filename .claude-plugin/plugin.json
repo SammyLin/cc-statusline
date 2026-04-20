@@ -1,0 +1,13 @@
+{
+  "name": "cc-statusline",
+  "version": "1.1.0",
+  "description": "A lightweight Claude Code statusline dashboard with a rounded multi-line layout, cost tracking, quota bars, git info, MCP/subagent status, and themeable colors.",
+  "author": {
+    "name": "SammyLin",
+    "url": "https://github.com/SammyLin"
+  },
+  "homepage": "https://github.com/SammyLin/cc-statusline",
+  "repository": "https://github.com/SammyLin/cc-statusline",
+  "license": "MIT",
+  "keywords": ["statusline", "dashboard", "claude-code", "hooks", "terminal", "monitoring", "themes"]
+}
