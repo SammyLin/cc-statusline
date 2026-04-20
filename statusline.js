@@ -5,6 +5,7 @@ import { bar, fmtDur, fmtTok, fmtReset, shortDir } from './lib/format.js';
 import { getGitInfo } from './lib/git.js';
 import { getHookData } from './lib/hooks.js';
 import { getRateLimits } from './lib/rate-limits.js';
+import { getPermissionMode } from './lib/permission.js';
 import { updateSession } from './lib/session.js';
 import fs from 'fs';
 import path from 'path';
@@ -50,6 +51,16 @@ process.stdin.on('end', () => {
       ? segDim(git.repo + '/') + seg(git.branch, git.dirty ? C.hi : C.b) + (cfg.showDirty && git.dirty ? seg('!', C.hi) : '')
       : '';
     const modelSeg = segBold(model, C.m) + (effort ? ' ' + segDim(effort) : '');
+
+    // Permission mode — read from session transcript (not in statusline payload).
+    let permSeg = '';
+    if (cfg.showPermission) {
+      const mode = getPermissionMode(i.transcript_path);
+      const PERM_LABEL = { acceptEdits: 'edits', plan: 'plan', bypassPermissions: 'yolo', default: '' };
+      const PERM_COLOR = { acceptEdits: C.ok, plan: C.bar, bypassPermissions: C.err, default: C.d };
+      const label = PERM_LABEL[mode];
+      if (label) permSeg = seg(label, PERM_COLOR[mode] || C.d);
+    }
     const costSeg = segBold(`$${(cum.cost?.total || 0).toFixed(4)}`, C.c);
     const durSeg = dur > 0 ? segDim(fmtDur(dur)) : '';
 
@@ -104,7 +115,7 @@ process.stdin.on('end', () => {
     const SEP = segDim(' \u00b7 ');
 
     if (cfg.layout === 'single') {
-      const left = join([costSeg, modelSeg, durSeg, linesStr, tokSeg], ' ');
+      const left = join([costSeg, modelSeg, permSeg, durSeg, linesStr, tokSeg], ' ');
       const right = join([quotaSegs.join(' '), gitSeg, sysSegs.join(' '), accountSeg], ' ');
       const PL = cfg.powerline ? POWERLINE : '|';
       const PLR = cfg.powerline ? '\uE0B2' : '|';
@@ -117,7 +128,7 @@ process.stdin.on('end', () => {
     }
 
     // rounded multi-line
-    const line1 = join([dirSeg, gitSeg, modelSeg, costSeg, durSeg], SEP);
+    const line1 = join([dirSeg, gitSeg, modelSeg, permSeg, costSeg, durSeg], SEP);
     const line2Parts = [];
     if (quotaSegs.length) line2Parts.push(quotaSegs.join('  '));
     if (tokSeg) line2Parts.push(tokSeg);

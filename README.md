@@ -19,6 +19,7 @@ A lightweight Claude Code statusline dashboard with a rounded multi-line layout 
 - **Rounded layout** — prompt-style ╭╴ / ╰╴ two-line output (toggle to single-line via config)
 - **Current directory** — auto-shortens long paths (`~/…/baz/deep`)
 - **Session info** — model name + effort level, cost (delta-tracked across compactions), duration
+- **Permission mode** — shows `edits` / `plan` / `yolo` when not in default mode (read from session transcript)
 - **Quota bars** — 5h and 7d rate limit usage with %, reset countdown, and color-coded progress bars
 - **Repo/branch** — git owner/repo, branch name, dirty indicator
 - **Subagent tracker** — concurrent subagent runs
@@ -44,6 +45,7 @@ All settings live in `lib/config.js`. Override via:
   "showQuotaReset": true,
   "dirSegments": 2,
   "showDir": true,
+  "showPermission": true,
   "showAccount": true,
   "showCompact": true,
   "showSubagent": true,
