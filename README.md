@@ -39,11 +39,12 @@ const POWERLINE_FONTS = true;  // Set false for simple pipe separators
 
 ```bash
 # Clone the repo
-git clone https://github.com/the3mi/cc-statusline ~/.cc-statusline
+git clone https://github.com/SammyLin/cc-statusline ~/.cc-statusline
 
 # Copy files
 cp ~/.cc-statusline/statusline.js ~/.claude/statusline.js
 cp ~/.cc-statusline/hooks/*.js ~/.claude/hooks/
+cp -R ~/.cc-statusline/lib ~/.claude/lib
 ```
 
 Then add to your `~/.claude/settings.json`:
