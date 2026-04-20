@@ -56,10 +56,14 @@ process.stdin.on('end', () => {
     let permSeg = '';
     if (cfg.showPermission) {
       const mode = getPermissionMode(i.transcript_path);
-      const PERM_LABEL = { acceptEdits: 'edits', plan: 'plan', bypassPermissions: 'yolo', default: '' };
-      const PERM_COLOR = { acceptEdits: C.ok, plan: C.bar, bypassPermissions: C.err, default: C.d };
+      const PERM_LABEL = { acceptEdits: 'edits', auto: 'auto', plan: 'plan', bypassPermissions: 'yolo', default: '' };
+      const PERM_COLOR = { acceptEdits: C.ok, auto: C.i, plan: C.bar, bypassPermissions: C.err, default: C.d };
       const label = PERM_LABEL[mode];
-      if (label) permSeg = seg(label, PERM_COLOR[mode] || C.d);
+      if (label) {
+        const colored = seg(label, PERM_COLOR[mode] || C.d);
+        // yolo gets a ⚠ prefix so it's harder to miss in a glance.
+        permSeg = mode === 'bypassPermissions' ? seg('\u26A0 ', C.err) + colored : colored;
+      }
     }
     const costSeg = segBold(`$${(cum.cost?.total || 0).toFixed(4)}`, C.c);
     const durSeg = dur > 0 ? segDim(fmtDur(dur)) : '';

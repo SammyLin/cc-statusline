@@ -35,6 +35,24 @@ test('handles transcripts with no permissionMode field', () => {
   fs.unlinkSync(p);
 });
 
+test('recognises the auto mode value', () => {
+  const lines = [
+    JSON.stringify({ type: 'permission-mode', permissionMode: 'default' }),
+    JSON.stringify({ type: 'permission-mode', permissionMode: 'auto' }),
+  ].join('\n');
+  const p = tmpFile(lines);
+  assert.equal(getPermissionMode(p), 'auto');
+  fs.unlinkSync(p);
+});
+
+test('handles standalone permission-mode records', () => {
+  // Claude Code emits {"type":"permission-mode","permissionMode":"..."} on
+  // session start / mode change in addition to per-turn entries.
+  const p = tmpFile(JSON.stringify({ type: 'permission-mode', permissionMode: 'bypassPermissions' }));
+  assert.equal(getPermissionMode(p), 'bypassPermissions');
+  fs.unlinkSync(p);
+});
+
 test('reads only the tail for large files (cheap on long sessions)', () => {
   const filler = 'x'.repeat(1024);
   const head = Array.from({ length: 200 }, () => `{"junk":"${filler}"}`).join('\n');
