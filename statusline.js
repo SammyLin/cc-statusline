@@ -56,8 +56,8 @@ process.stdin.on('end', () => {
     let permSeg = '';
     if (cfg.showPermission) {
       const mode = getPermissionMode(i.transcript_path);
-      const PERM_LABEL = { acceptEdits: 'edits', auto: 'auto', plan: 'plan', bypassPermissions: 'yolo', default: '' };
-      const PERM_COLOR = { acceptEdits: C.ok, auto: C.i, plan: C.bar, bypassPermissions: C.err, default: C.d };
+      const PERM_LABEL = { acceptEdits: 'edits', auto: 'auto', plan: 'plan', dontAsk: 'noask', bypassPermissions: 'yolo', default: '' };
+      const PERM_COLOR = { acceptEdits: C.ok, auto: C.i, plan: C.bar, dontAsk: C.i, bypassPermissions: C.err, default: C.d };
       const label = PERM_LABEL[mode];
       if (label) {
         const colored = seg(label, PERM_COLOR[mode] || C.d);
