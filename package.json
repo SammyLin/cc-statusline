@@ -1,6 +1,17 @@
 {
   "name": "cc-statusline",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "type": "module",
-  "bin": "./statusline.js"
+  "bin": "./statusline.js",
+  "scripts": {
+    "test": "node --test 'test/*.test.js'"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/SammyLin/cc-statusline.git"
+  }
 }

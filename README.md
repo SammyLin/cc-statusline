@@ -1,5 +1,10 @@
 # cc-statusline
 
+[![CI](https://github.com/SammyLin/cc-statusline/actions/workflows/ci.yml/badge.svg)](https://github.com/SammyLin/cc-statusline/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Node](https://img.shields.io/node/v/cc-statusline?label=node&color=brightgreen)](https://nodejs.org)
+[![Claude Code](https://img.shields.io/badge/Claude%20Code-plugin-blueviolet)](https://docs.claude.com/en/docs/claude-code)
+
 A lightweight Claude Code statusline dashboard with a rounded multi-line layout — shows current dir, git, model, cost, quotas, MCP health, and more.
 
 ```
