@@ -24,9 +24,8 @@ process.stdin.on('end', () => {
     if (cfg.showAccount) {
       try {
         const claudeJson = JSON.parse(fs.readFileSync(path.join(os.homedir(), '.claude.json'), 'utf8'));
-        if (claudeJson?.account?.email) {
-          account = claudeJson.account.email.replace(/@.*/, '');
-        }
+        const email = claudeJson?.oauthAccount?.emailAddress || claudeJson?.account?.email;
+        if (email) account = email.replace(/@.*/, '');
       } catch (_) {}
     }
 
